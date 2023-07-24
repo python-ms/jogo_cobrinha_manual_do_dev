@@ -1,15 +1,26 @@
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
-const h1 = document.querySelector("h1");
+// const h1 = document.querySelector("h1");
+const score = document.querySelector(".score--value");
+const finalScore = document.querySelector(".final-score > span");
+const menu = document.querySelector(".menu-screen");
+const buttonPlay = document.querySelector(".btn-play");
 
+const audio = new Audio('../assets/audio.mp3');
 // ctx.fillStyle = 'red';
 // ctx.fillRect(300, 100, 50, 100);
 
 
 /*tamanho do quadradinhos*/
-const size = 30;
+const size = 30; 
 
-const snake = [{ x: 270, y: 240}]
+const initialPosition = { x: 270, y: 240};
+
+let snake = [initialPosition];
+
+const incrementScore = () => {
+    score.innerText = +score.innerText + 10
+}
 
 // função para gerar numeros aleatórios para a comida food.
 const randomNumber = (min, max) => {
@@ -29,7 +40,7 @@ const randomColor = () => {
   return `rgb(${red}, ${green}, ${blue})`
 }
 
-h1.innerText = randomColor();
+// h1.innerText = randomColor();
 
 const food = {
     x: randomPosition(),
@@ -109,6 +120,62 @@ const drawGrid = () => {
 
 drawGrid();
 
+
+const chackEater = () => {
+    const head = snake[snake.length - 1];
+
+    if(head.x == food.x && head.y == food.y) {
+        incrementScore()
+        snake.push(head);
+        audio.play();
+
+        // food.x = randomPosition(),
+        // food.y = randomPosition(),
+        // food.color = randomColor()    
+        let x = randomPosition();
+        let y = randomPosition();
+
+        while(snake.find((position) => position.x == x && position.y == y)){
+            let x = randomPosition();
+            let y = randomPosition();
+        }
+        
+        food.x = x;
+        food.y = y;
+        food.color = randomColor
+    }
+}
+
+const checkColision = () => {
+    const head = snake[snake.length - 1];
+    const canvasLimit = canvas.width - size;
+    const neckindex = snake.length - 2;
+
+
+    const wallcolision =
+        head.x < 0 ||  head.x > canvasLimit || head.y < 0 ||  head.y > canvasLimit; 
+
+        
+    const selfColision = snake.find((position, index) => {
+        return index < neckindex && position.x == head.x && position.y == head.y;
+    })
+
+    if (wallcolision || selfColision) {
+        gameOver()
+          
+    }
+}
+
+const gameOver = () => {
+    direction = undefined;
+
+    menu.style.display = 'flex';
+    finalScore.innerText = score.innerText;
+    canvas.style.filter = "blur(2px)"; 
+    audio.play();
+}
+
+
 const gameLoop = () => {
     clearInterval(loopId);
 
@@ -117,6 +184,9 @@ const gameLoop = () => {
     drawFood();
     moveSnake();
     drawSnake();
+    chackEater();
+    checkColision();
+
 
     loopId = setTimeout(() => {
         gameLoop();
@@ -145,5 +215,14 @@ document.addEventListener("keydown", ({ key }) => {
     }
     
 })
+
+buttonPlay.addEventListener("click", () => {
+    score.innerText = "00";
+    menu.style.display = "none";
+    canvas.style.filter = "none";
+
+    snake = [{x: 270, y: 270}]
+
+});
 
 
